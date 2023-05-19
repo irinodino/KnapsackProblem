@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -27,6 +27,7 @@ namespace Knapsack_problems
         {
             //устанавливаем фокус на компонент textBox1
             this.ActiveControl = textBox1;
+            
 
             //из главной формы получаем значение компонента numericUpDown1
             decimal number_of_items_decimal = mainForm.numericUpDown1.Value;
@@ -72,9 +73,8 @@ namespace Knapsack_problems
             mainForm.Show();
         }
         //нажатие на кнопку "Получить решение"
-        private void button1_Click(object sender, EventArgs e)
+        async private void button1_Click(object sender, EventArgs e)
         {
-
             textBox2.Text = "";
             textBox3.Text = "";
             not_visible(sender, e); //скрытие элементов формы
@@ -149,7 +149,7 @@ namespace Knapsack_problems
                 {
                     for (int i = 0; i < number_of_things; i++)
                     {
-                        Item.items[i] = new Item(dataGridView1.Rows[0].Cells[i + 1].Value.ToString(), Convert.ToInt32(dataGridView1.Rows[1].Cells[i + 1].Value), 0, 0);
+                        Item.items[i] = await Task.Run(() => new Item(dataGridView1.Rows[0].Cells[i + 1].Value.ToString(), Convert.ToInt32(dataGridView1.Rows[1].Cells[i + 1].Value), 0, 0));
                     }
                 }
                 //если каждый предмет имеется в ограниченном количестве
@@ -157,7 +157,7 @@ namespace Knapsack_problems
                 {
                     for (int i = 0; i < number_of_things; i++)
                     {
-                        Item.items[i] = new Item(dataGridView1.Rows[0].Cells[i + 1].Value.ToString(), Convert.ToInt32(dataGridView1.Rows[1].Cells[i + 1].Value), 0, Convert.ToInt32(dataGridView1.Rows[2].Cells[i + 1].Value));
+                        Item.items[i] = await Task.Run(() => new Item(dataGridView1.Rows[0].Cells[i + 1].Value.ToString(), Convert.ToInt32(dataGridView1.Rows[1].Cells[i + 1].Value), 0, Convert.ToInt32(dataGridView1.Rows[2].Cells[i + 1].Value)));
                     }
                 }
                 
@@ -191,32 +191,35 @@ namespace Knapsack_problems
                     {
                         visible(sender, e); //отображение компонентов формы
                         //вывод в компонент textBox2 максимального веса предметов
-                        textBox2.Text = Convert.ToString(simple_algorithm.max_weight(Item.items, maxCapacity, c2, c3, c4));
+                        await Task.Run(() => textBox2.Text = Convert.ToString( simple_algorithm.max_weight(Item.items, maxCapacity, c2, c3, c4)));
+
                         //вывод набора предметов в компонент textBox3
-                        textBox3.Text = Convert.ToString(simple_algorithm.arr_items[Item.items.Length, maxCapacity]);
+                        await Task.Run(() => textBox3.Text = Convert.ToString( simple_algorithm.arr_items[Item.items.Length, maxCapacity]));
 
                         decimal number_of_items_decimal = mainForm.numericUpDown1.Value;
                         int number_of_items = Convert.ToInt32(number_of_items_decimal);
                         //запись результатов в БД
                         if (checkBox1.Checked)
-                            mainForm.recording_the_solution("Задача без стоимости и предметами в единственном экземпляре", maxCapacity, number_of_items,  Convert.ToInt32(textBox2.Text), Convert.ToString(textBox3.Text));
+                            await Task.Run(() => mainForm.recording_the_solution("Задача без стоимости и предметами в единственном экземпляре", maxCapacity, number_of_items,  Convert.ToInt32(textBox2.Text), Convert.ToString(textBox3.Text)));
                     }
                     //если каждый предмет имеется в ограниченном количестве
                     else if (mainForm.checkBox4.Checked)
                     {
                         visible(sender, e); //отображение компонентов формы
                         //вывод в компонент textBox2 максимального веса предметов
-                        textBox2.Text = Convert.ToString(simple_algorithm.max_weight(Item.items, maxCapacity, c2, c3, c4));
+                        await Task.Run(() => textBox2.Text = Convert.ToString( simple_algorithm.max_weight(Item.items, maxCapacity, c2, c3, c4)));
                         //вывод набора предметов в компонент textBox3
-                        textBox3.Text = Convert.ToString(simple_algorithm.arr_items[Item.items.Length, maxCapacity]);
+                        await Task.Run(() => textBox3.Text = Convert.ToString( simple_algorithm.arr_items[Item.items.Length, maxCapacity]));
 
                         decimal number_of_items_decimal = mainForm.numericUpDown1.Value;
                         int number_of_items = Convert.ToInt32(number_of_items_decimal);
 
                         //запись результатов в БД
                         if (checkBox1.Checked)
-                            mainForm.recording_the_solution("Задача без стоимости и предметами в ограниченном количестве", maxCapacity, number_of_items, Convert.ToInt32(textBox2.Text), Convert.ToString(textBox3.Text));
+                            await Task.Run(() => mainForm.recording_the_solution("Задача без стоимости и предметами в ограниченном количестве", maxCapacity, number_of_items, Convert.ToInt32(textBox2.Text), Convert.ToString(textBox3.Text)));
                     }
+
+                    
                 }
                 //если суммарный вес предметов больше или равен весу рюкзака
                 //и каждый предмет имеется в единственном или неограниченном экземпляре
@@ -236,9 +239,10 @@ namespace Knapsack_problems
                 //и имеется хотя бы один предмет, вес которого меньше, чес вес рюкзака
                 if (mainForm.checkBox3.Checked && check == true)
                 {
+                    
                     //вывод в компонент textBox2 максимального веса предметов
                     textBox2.Text = Convert.ToString(simple_algorithm.max_weight(Item.items, maxCapacity, c2, c3, c4));
-                    string items = Convert.ToString(simple_algorithm.arr_items[Item.items.Length, maxCapacity]);
+                    string items = Convert.ToString(await Task.Run(() => simple_algorithm.arr_items[Item.items.Length, maxCapacity]));
                     
                     //преобразование набора предметов
                     string result = " ";
@@ -263,14 +267,15 @@ namespace Knapsack_problems
                         k = 0;
                     }
                     //вывод набора предметов в компонент textBox3
-                    textBox3.Text = result;
+                    await Task.Run(() => textBox3.Text = result);
                     visible(sender, e); //отображение компонентов формы
 
                     decimal number_of_items_decimal = mainForm.numericUpDown1.Value;
                     int number_of_items = Convert.ToInt32(number_of_items_decimal);
                     //запись результатов в БД
                     if (checkBox1.Checked)
-                        mainForm.recording_the_solution("Задача без стоимости и предметами в неограниченном количестве", maxCapacity, number_of_items, Convert.ToInt32(textBox2.Text), Convert.ToString(textBox3.Text));
+                        await Task.Run(() => mainForm.recording_the_solution("Задача без стоимости и предметами в неограниченном количестве", maxCapacity, number_of_items, Convert.ToInt32(textBox2.Text), Convert.ToString(textBox3.Text)));
+                    //Dispose();
                 }
 
                 else if (mainForm.checkBox3.Checked && check == false)
@@ -308,6 +313,7 @@ namespace Knapsack_problems
                 MessageBox.Show("Вес рюкзака должен быть положительным числом!", "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 this.ActiveControl = textBox1;
             }
+            
         }
 
         //нажатие на кнопку "Закрыть"
@@ -396,6 +402,5 @@ namespace Knapsack_problems
             textBox2.Visible = true;
             textBox3.Visible = true;
         }
-
     }
 }
