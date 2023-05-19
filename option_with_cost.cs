@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -67,7 +67,7 @@ namespace Knapsack_problems
         }
 
         //нажатие на кнопку "Получить решение"
-        private void button1_Click(object sender, EventArgs e)
+       async private void button1_Click(object sender, EventArgs e)
         {
             textBox2.Text = "";
             textBox3.Text = "";
@@ -131,7 +131,7 @@ namespace Knapsack_problems
                 }
             }
             //если пользователь ввел корректные данные
-            if (int.TryParse(textBox1.Text, out var outParse) && ex == true && Convert.ToInt32(textBox1.Text) > 0 && Convert.ToInt32(textBox1.Text) <= 5000 && textBox1.Text != string.Empty)
+            if (int.TryParse(textBox1.Text, out var outParse) && ex == true && Convert.ToInt32(textBox1.Text) > 0 && Convert.ToInt32(textBox1.Text) <= 10000 && textBox1.Text != string.Empty)
             {
                 int number_of_things = dataGridView1.ColumnCount - 1; //количество предметов
                 int maxCapacity = Convert.ToInt32(textBox1.Text); //вместимость рюкзака
@@ -151,7 +151,7 @@ namespace Knapsack_problems
                 {
                     for (int i = 0; i < number_of_things; i++)
                     {
-                        Item.items[i] = new Item(dataGridView1.Rows[0].Cells[i + 1].Value.ToString(), Convert.ToInt32(dataGridView1.Rows[1].Cells[i + 1].Value), Convert.ToInt32(dataGridView1.Rows[2].Cells[i + 1].Value), Convert.ToInt32(dataGridView1.Rows[3].Cells[i + 1].Value));
+                        Item.items[i] =  new Item(dataGridView1.Rows[0].Cells[i + 1].Value.ToString(), Convert.ToInt32(dataGridView1.Rows[1].Cells[i + 1].Value), Convert.ToInt32(dataGridView1.Rows[2].Cells[i + 1].Value), Convert.ToInt32(dataGridView1.Rows[3].Cells[i + 1].Value));
                     }
                 }
                 
@@ -184,10 +184,11 @@ namespace Knapsack_problems
                 {
                     if (mainForm.checkBox2.Checked)
                     {
+
                         //вывод в компонент textBox2 максимальной стоимости предметов
-                        textBox2.Text = Convert.ToString(algorithm_with_cost.max_cost(Item.items, maxCapacity, c2, c3, c4));
+                        textBox2.Text = Convert.ToString(await Task.Run(() => algorithm_with_cost.max_cost(Item.items, maxCapacity, c2, c3, c4)));
                         //вывод набора предметов в компонент textBox3
-                        textBox3.Text += Convert.ToString(algorithm_with_cost.arr_items[Item.items.Length, maxCapacity]);
+                        textBox3.Text += Convert.ToString(await Task.Run(() => algorithm_with_cost.arr_items[Item.items.Length, maxCapacity]));
                         visible(sender, e); //отображение элементов формы
 
                         decimal number_of_items_decimal = mainForm.numericUpDown1.Value;
@@ -195,16 +196,22 @@ namespace Knapsack_problems
 
                         //запись результатов в БД
                         if (checkBox1.Checked)
-                        mainForm.recording_the_solution("Задача со стоимостью и предметами в единственном экземпляре", maxCapacity, number_of_items, Convert.ToInt32(textBox2.Text), Convert.ToString(textBox3.Text));
+                            await Task.Run(() => mainForm.recording_the_solution("Задача со стоимостью и предметами в единственном экземпляре", maxCapacity, number_of_items, Convert.ToInt32(textBox2.Text), Convert.ToString(textBox3.Text)));
+
+                        for (int i = 0; i < number_of_items; i++)
+                        {
+                            mainForm.recording_items(Item.items[i].name, Item.items[i].weight, Item.items[i].price);
+                        } 
+  
                     }
 
                     //если каждый предмет имеется в ограниченном количестве
                     else if (mainForm.checkBox4.Checked)
                     {
                         //вывод в компонент textBox2 максимальной стоимости предметов
-                        textBox2.Text = Convert.ToString(algorithm_with_cost.max_cost(Item.items, maxCapacity, c2, c3, c4));
+                        await Task.Run(() => textBox2.Text = Convert.ToString(algorithm_with_cost.max_cost(Item.items, maxCapacity, c2, c3, c4)));
                         //вывод набора предметов в компонент textBox3
-                        textBox3.Text += Convert.ToString(algorithm_with_cost.arr_items[Item.items.Length, maxCapacity]);
+                        await Task.Run(() => textBox3.Text += Convert.ToString(algorithm_with_cost.arr_items[Item.items.Length, maxCapacity]));
                         visible(sender, e); //отображение элементов формы
 
                         decimal number_of_items_decimal = mainForm.numericUpDown1.Value;
@@ -212,7 +219,7 @@ namespace Knapsack_problems
 
                         //запись результатов в БД
                         if (checkBox1.Checked)
-                            mainForm.recording_the_solution("Задача со стоимостью и предметами в ограниченном количестве", maxCapacity, number_of_items, Convert.ToInt32(textBox2.Text), Convert.ToString(textBox3.Text));
+                            await Task.Run(() => mainForm.recording_the_solution("Задача со стоимостью и предметами в ограниченном количестве", maxCapacity, number_of_items, Convert.ToInt32(textBox2.Text), Convert.ToString(textBox3.Text)));
                     }
                 }
                 //если суммарный вес предметов больше или равен весу рюкзака
@@ -237,7 +244,7 @@ namespace Knapsack_problems
                     //вывод в компонент textBox2 максимальной стоимости предметов
                     textBox2.Text = Convert.ToString(algorithm_with_cost.max_cost(Item.items, maxCapacity, c2, c3, c4));
 
-                    string items = Convert.ToString(algorithm_with_cost.arr_items[Item.items.Length, maxCapacity]);
+                    string items = Convert.ToString(await Task.Run(() => algorithm_with_cost.arr_items[Item.items.Length, maxCapacity]));
 
                     //преобразование набора предметов
                     string result = " ";
@@ -257,14 +264,14 @@ namespace Knapsack_problems
 
                         l= 0;
                     }
-                    textBox3.Text = result; //вывод набора предметов в компонент textBox3
+                    await Task.Run(() => textBox3.Text = result); //вывод набора предметов в компонент textBox3
                     visible(sender, e); //отображение элементов формы
 
                     decimal number_of_items_decimal = mainForm.numericUpDown1.Value;
                     int number_of_items = Convert.ToInt32(number_of_items_decimal); //количество предметов
 
                     if (checkBox1.Checked) //запись результатов в БД
-                        mainForm.recording_the_solution("Задача со стоимостью и предметами в неограниченном количестве", maxCapacity, number_of_items, Convert.ToInt32(textBox2.Text), Convert.ToString(textBox3.Text));
+                        await Task.Run(() => mainForm.recording_the_solution("Задача со стоимостью и предметами в неограниченном количестве", maxCapacity, number_of_items, Convert.ToInt32(textBox2.Text), Convert.ToString(textBox3.Text)));
                 }
 
                 //если каждый предмет имеется в неограниченном экзепляре
@@ -278,7 +285,7 @@ namespace Knapsack_problems
             }
             else if (int.TryParse(textBox1.Text, out var outParse2)  && textBox1.Text != string.Empty && Convert.ToInt32(textBox1.Text) > 0)
             {
-                if (Convert.ToInt32(textBox1.Text) > 5000 )
+                if (Convert.ToInt32(textBox1.Text) > 10000 )
                 {
                     not_visible(sender, e); //скрытие элементов формы
                     MessageBox.Show("Вес рюкзака не может превышать 5000!", "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -406,6 +413,12 @@ namespace Knapsack_problems
             label2.Visible = true;
             textBox2.Visible = true;
             textBox3.Visible = true;
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            items_db newForm = new items_db(this);
+            newForm.Show();
         }
     }
 
